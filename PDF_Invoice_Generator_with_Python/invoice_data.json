@@ -1,0 +1,509 @@
+{
+  "business_name": "Tech Solutions Inc.",
+  "business_address": "123 Innovation Drive, Tech City, TX 75001",
+  "customer_name": "Jane Doe",
+  "customer_address": "456 Elm Street, Springfield, IL 62704",
+  "items": [
+    {
+      "description": "Tablet",
+      "quantity": 2,
+      "unit_price": 19.01
+    },
+    {
+      "description": "Hard Drive",
+      "quantity": 7,
+      "unit_price": 49.11
+    },
+    {
+      "description": "Monitor",
+      "quantity": 5,
+      "unit_price": 193.49
+    },
+    {
+      "description": "Hard Drive",
+      "quantity": 7,
+      "unit_price": 73.18
+    },
+    {
+      "description": "Router",
+      "quantity": 7,
+      "unit_price": 23.62
+    },
+    {
+      "description": "Printer",
+      "quantity": 4,
+      "unit_price": 457.55
+    },
+    {
+      "description": "Monitor",
+      "quantity": 2,
+      "unit_price": 37.35
+    },
+    {
+      "description": "Cooling Fan",
+      "quantity": 5,
+      "unit_price": 103.53
+    },
+    {
+      "description": "Laptop",
+      "quantity": 3,
+      "unit_price": 196.69
+    },
+    {
+      "description": "Charger",
+      "quantity": 10,
+      "unit_price": 340.52
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 5,
+      "unit_price": 347.15
+    },
+    {
+      "description": "Webcam",
+      "quantity": 5,
+      "unit_price": 379.49
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 3,
+      "unit_price": 239.78
+    },
+    {
+      "description": "Graphics Card",
+      "quantity": 8,
+      "unit_price": 106.05
+    },
+    {
+      "description": "Speaker",
+      "quantity": 3,
+      "unit_price": 31.11
+    },
+    {
+      "description": "External SSD",
+      "quantity": 3,
+      "unit_price": 23.07
+    },
+    {
+      "description": "Router",
+      "quantity": 6,
+      "unit_price": 498.03
+    },
+    {
+      "description": "Microphone",
+      "quantity": 5,
+      "unit_price": 89.88
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 2,
+      "unit_price": 157.21
+    },
+    {
+      "description": "Printer",
+      "quantity": 2,
+      "unit_price": 82.6
+    },
+    {
+      "description": "Tablet",
+      "quantity": 8,
+      "unit_price": 169.67
+    },
+    {
+      "description": "External SSD",
+      "quantity": 2,
+      "unit_price": 93.68
+    },
+    {
+      "description": "Tablet",
+      "quantity": 3,
+      "unit_price": 90.38
+    },
+    {
+      "description": "Memory Stick",
+      "quantity": 5,
+      "unit_price": 469.89
+    },
+    {
+      "description": "USB Hub",
+      "quantity": 6,
+      "unit_price": 209.08
+    },
+    {
+      "description": "Router",
+      "quantity": 10,
+      "unit_price": 223.69
+    },
+    {
+      "description": "Microphone",
+      "quantity": 2,
+      "unit_price": 98.85
+    },
+    {
+      "description": "External SSD",
+      "quantity": 9,
+      "unit_price": 400.85
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 9,
+      "unit_price": 139.29
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 7,
+      "unit_price": 37.55
+    },
+    {
+      "description": "Tablet",
+      "quantity": 2,
+      "unit_price": 162.55
+    },
+    {
+      "description": "Mouse",
+      "quantity": 10,
+      "unit_price": 296.99
+    },
+    {
+      "description": "External SSD",
+      "quantity": 7,
+      "unit_price": 465.57
+    },
+    {
+      "description": "Webcam",
+      "quantity": 3,
+      "unit_price": 498.67
+    },
+    {
+      "description": "Network Switch",
+      "quantity": 10,
+      "unit_price": 465.11
+    },
+    {
+      "description": "Tablet",
+      "quantity": 8,
+      "unit_price": 406.38
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 1,
+      "unit_price": 333.14
+    },
+    {
+      "description": "Projector",
+      "quantity": 7,
+      "unit_price": 13.04
+    },
+    {
+      "description": "Headset",
+      "quantity": 6,
+      "unit_price": 23.29
+    },
+    {
+      "description": "Charger",
+      "quantity": 9,
+      "unit_price": 190.74
+    },
+    {
+      "description": "Processor",
+      "quantity": 6,
+      "unit_price": 171.2
+    },
+    {
+      "description": "Keyboard",
+      "quantity": 10,
+      "unit_price": 445.9
+    },
+    {
+      "description": "Laptop",
+      "quantity": 7,
+      "unit_price": 470.8
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 5,
+      "unit_price": 307.83
+    },
+    {
+      "description": "External SSD",
+      "quantity": 9,
+      "unit_price": 454.32
+    },
+    {
+      "description": "USB Hub",
+      "quantity": 1,
+      "unit_price": 215.63
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 8,
+      "unit_price": 436.02
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 10,
+      "unit_price": 430.64
+    },
+    {
+      "description": "Charger",
+      "quantity": 7,
+      "unit_price": 53.0
+    },
+    {
+      "description": "Webcam",
+      "quantity": 6,
+      "unit_price": 364.9
+    },
+    {
+      "description": "Motherboard",
+      "quantity": 1,
+      "unit_price": 16.12
+    },
+    {
+      "description": "Router",
+      "quantity": 6,
+      "unit_price": 273.51
+    },
+    {
+      "description": "Cooling Fan",
+      "quantity": 10,
+      "unit_price": 225.11
+    },
+    {
+      "description": "Webcam",
+      "quantity": 4,
+      "unit_price": 27.75
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 6,
+      "unit_price": 302.79
+    },
+    {
+      "description": "Monitor",
+      "quantity": 5,
+      "unit_price": 355.68
+    },
+    {
+      "description": "Tablet",
+      "quantity": 2,
+      "unit_price": 62.11
+    },
+    {
+      "description": "External SSD",
+      "quantity": 4,
+      "unit_price": 395.75
+    },
+    {
+      "description": "Keyboard",
+      "quantity": 2,
+      "unit_price": 465.85
+    },
+    {
+      "description": "Processor",
+      "quantity": 2,
+      "unit_price": 379.03
+    },
+    {
+      "description": "Mouse",
+      "quantity": 3,
+      "unit_price": 175.28
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 1,
+      "unit_price": 362.8
+    },
+    {
+      "description": "Webcam",
+      "quantity": 9,
+      "unit_price": 60.54
+    },
+    {
+      "description": "Laptop",
+      "quantity": 6,
+      "unit_price": 189.89
+    },
+    {
+      "description": "Motherboard",
+      "quantity": 1,
+      "unit_price": 253.27
+    },
+    {
+      "description": "Laptop",
+      "quantity": 6,
+      "unit_price": 72.44
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 4,
+      "unit_price": 488.16
+    },
+    {
+      "description": "Cooling Fan",
+      "quantity": 8,
+      "unit_price": 401.71
+    },
+    {
+      "description": "Hard Drive",
+      "quantity": 5,
+      "unit_price": 172.59
+    },
+    {
+      "description": "Hard Drive",
+      "quantity": 4,
+      "unit_price": 262.57
+    },
+    {
+      "description": "Keyboard",
+      "quantity": 9,
+      "unit_price": 302.62
+    },
+    {
+      "description": "Projector",
+      "quantity": 9,
+      "unit_price": 433.65
+    },
+    {
+      "description": "Router",
+      "quantity": 7,
+      "unit_price": 355.98
+    },
+    {
+      "description": "Microphone",
+      "quantity": 2,
+      "unit_price": 377.37
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 10,
+      "unit_price": 62.06
+    },
+    {
+      "description": "Microphone",
+      "quantity": 5,
+      "unit_price": 303.18
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 10,
+      "unit_price": 350.02
+    },
+    {
+      "description": "Webcam",
+      "quantity": 9,
+      "unit_price": 333.68
+    },
+    {
+      "description": "Motherboard",
+      "quantity": 4,
+      "unit_price": 145.6
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 8,
+      "unit_price": 385.88
+    },
+    {
+      "description": "USB Hub",
+      "quantity": 7,
+      "unit_price": 268.21
+    },
+    {
+      "description": "Cooling Fan",
+      "quantity": 9,
+      "unit_price": 383.46
+    },
+    {
+      "description": "Speaker",
+      "quantity": 3,
+      "unit_price": 231.84
+    },
+    {
+      "description": "USB Hub",
+      "quantity": 3,
+      "unit_price": 10.47
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 6,
+      "unit_price": 454.62
+    },
+    {
+      "description": "Power Supply",
+      "quantity": 2,
+      "unit_price": 423.27
+    },
+    {
+      "description": "Headset",
+      "quantity": 4,
+      "unit_price": 479.98
+    },
+    {
+      "description": "Cooling Fan",
+      "quantity": 7,
+      "unit_price": 438.75
+    },
+    {
+      "description": "Charger",
+      "quantity": 7,
+      "unit_price": 411.06
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 1,
+      "unit_price": 447.19
+    },
+    {
+      "description": "Network Switch",
+      "quantity": 10,
+      "unit_price": 432.78
+    },
+    {
+      "description": "Webcam",
+      "quantity": 1,
+      "unit_price": 199.18
+    },
+    {
+      "description": "Hard Drive",
+      "quantity": 3,
+      "unit_price": 311.14
+    },
+    {
+      "description": "Graphics Card",
+      "quantity": 8,
+      "unit_price": 178.73
+    },
+    {
+      "description": "USB Hub",
+      "quantity": 9,
+      "unit_price": 209.12
+    },
+    {
+      "description": "Memory Stick",
+      "quantity": 8,
+      "unit_price": 64.34
+    },
+    {
+      "description": "Speaker",
+      "quantity": 2,
+      "unit_price": 57.56
+    },
+    {
+      "description": "Smartphone",
+      "quantity": 10,
+      "unit_price": 130.06
+    },
+    {
+      "description": "Stylus Pen",
+      "quantity": 1,
+      "unit_price": 492.92
+    },
+    {
+      "description": "Charger",
+      "quantity": 2,
+      "unit_price": 312.1
+    }
+  ],
+  "tax_rate": 0.07
+}

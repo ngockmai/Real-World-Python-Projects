@@ -1,0 +1,509 @@
+{
+  "business_name": "Tech Solutions Inc.",
+  "business_address": "123 Innovation Drive, Tech City, TX 75001",
+  "customer_name": "Jane Doe",
+  "customer_address": "456 Elm Street, Springfield, IL 62704",
+  "items": [
+    {
+      "description": "Item 1",
+      "quantity": 8,
+      "unit_price": 134.69
+    },
+    {
+      "description": "Item 2",
+      "quantity": 6,
+      "unit_price": 84.53
+    },
+    {
+      "description": "Item 3",
+      "quantity": 1,
+      "unit_price": 202.53
+    },
+    {
+      "description": "Item 4",
+      "quantity": 1,
+      "unit_price": 288.96
+    },
+    {
+      "description": "Item 5",
+      "quantity": 2,
+      "unit_price": 357.23
+    },
+    {
+      "description": "Item 6",
+      "quantity": 10,
+      "unit_price": 132.0
+    },
+    {
+      "description": "Item 7",
+      "quantity": 6,
+      "unit_price": 433.75
+    },
+    {
+      "description": "Item 8",
+      "quantity": 9,
+      "unit_price": 204.2
+    },
+    {
+      "description": "Item 9",
+      "quantity": 2,
+      "unit_price": 120.18
+    },
+    {
+      "description": "Item 10",
+      "quantity": 1,
+      "unit_price": 431.84
+    },
+    {
+      "description": "Item 11",
+      "quantity": 7,
+      "unit_price": 496.58
+    },
+    {
+      "description": "Item 12",
+      "quantity": 4,
+      "unit_price": 351.38
+    },
+    {
+      "description": "Item 13",
+      "quantity": 4,
+      "unit_price": 450.61
+    },
+    {
+      "description": "Item 14",
+      "quantity": 3,
+      "unit_price": 374.65
+    },
+    {
+      "description": "Item 15",
+      "quantity": 5,
+      "unit_price": 81.7
+    },
+    {
+      "description": "Item 16",
+      "quantity": 10,
+      "unit_price": 168.75
+    },
+    {
+      "description": "Item 17",
+      "quantity": 1,
+      "unit_price": 271.34
+    },
+    {
+      "description": "Item 18",
+      "quantity": 8,
+      "unit_price": 63.39
+    },
+    {
+      "description": "Item 19",
+      "quantity": 5,
+      "unit_price": 163.35
+    },
+    {
+      "description": "Item 20",
+      "quantity": 10,
+      "unit_price": 288.76
+    },
+    {
+      "description": "Item 21",
+      "quantity": 5,
+      "unit_price": 159.53
+    },
+    {
+      "description": "Item 22",
+      "quantity": 4,
+      "unit_price": 421.48
+    },
+    {
+      "description": "Item 23",
+      "quantity": 6,
+      "unit_price": 160.07
+    },
+    {
+      "description": "Item 24",
+      "quantity": 9,
+      "unit_price": 110.39
+    },
+    {
+      "description": "Item 25",
+      "quantity": 5,
+      "unit_price": 44.63
+    },
+    {
+      "description": "Item 26",
+      "quantity": 5,
+      "unit_price": 193.49
+    },
+    {
+      "description": "Item 27",
+      "quantity": 4,
+      "unit_price": 481.9
+    },
+    {
+      "description": "Item 28",
+      "quantity": 4,
+      "unit_price": 89.97
+    },
+    {
+      "description": "Item 29",
+      "quantity": 8,
+      "unit_price": 243.62
+    },
+    {
+      "description": "Item 30",
+      "quantity": 9,
+      "unit_price": 478.71
+    },
+    {
+      "description": "Item 31",
+      "quantity": 3,
+      "unit_price": 387.52
+    },
+    {
+      "description": "Item 32",
+      "quantity": 1,
+      "unit_price": 360.74
+    },
+    {
+      "description": "Item 33",
+      "quantity": 7,
+      "unit_price": 360.95
+    },
+    {
+      "description": "Item 34",
+      "quantity": 8,
+      "unit_price": 228.59
+    },
+    {
+      "description": "Item 35",
+      "quantity": 8,
+      "unit_price": 69.07
+    },
+    {
+      "description": "Item 36",
+      "quantity": 7,
+      "unit_price": 325.85
+    },
+    {
+      "description": "Item 37",
+      "quantity": 9,
+      "unit_price": 276.02
+    },
+    {
+      "description": "Item 38",
+      "quantity": 1,
+      "unit_price": 142.19
+    },
+    {
+      "description": "Item 39",
+      "quantity": 2,
+      "unit_price": 266.5
+    },
+    {
+      "description": "Item 40",
+      "quantity": 4,
+      "unit_price": 65.22
+    },
+    {
+      "description": "Item 41",
+      "quantity": 6,
+      "unit_price": 158.96
+    },
+    {
+      "description": "Item 42",
+      "quantity": 4,
+      "unit_price": 448.67
+    },
+    {
+      "description": "Item 43",
+      "quantity": 1,
+      "unit_price": 134.9
+    },
+    {
+      "description": "Item 44",
+      "quantity": 7,
+      "unit_price": 363.57
+    },
+    {
+      "description": "Item 45",
+      "quantity": 3,
+      "unit_price": 435.85
+    },
+    {
+      "description": "Item 46",
+      "quantity": 8,
+      "unit_price": 443.71
+    },
+    {
+      "description": "Item 47",
+      "quantity": 9,
+      "unit_price": 429.02
+    },
+    {
+      "description": "Item 48",
+      "quantity": 4,
+      "unit_price": 213.75
+    },
+    {
+      "description": "Item 49",
+      "quantity": 5,
+      "unit_price": 189.12
+    },
+    {
+      "description": "Item 50",
+      "quantity": 3,
+      "unit_price": 94.7
+    },
+    {
+      "description": "Item 51",
+      "quantity": 5,
+      "unit_price": 82.31
+    },
+    {
+      "description": "Item 52",
+      "quantity": 6,
+      "unit_price": 355.71
+    },
+    {
+      "description": "Item 53",
+      "quantity": 2,
+      "unit_price": 257.53
+    },
+    {
+      "description": "Item 54",
+      "quantity": 6,
+      "unit_price": 191.46
+    },
+    {
+      "description": "Item 55",
+      "quantity": 8,
+      "unit_price": 428.85
+    },
+    {
+      "description": "Item 56",
+      "quantity": 9,
+      "unit_price": 199.99
+    },
+    {
+      "description": "Item 57",
+      "quantity": 2,
+      "unit_price": 160.23
+    },
+    {
+      "description": "Item 58",
+      "quantity": 3,
+      "unit_price": 404.06
+    },
+    {
+      "description": "Item 59",
+      "quantity": 7,
+      "unit_price": 99.64
+    },
+    {
+      "description": "Item 60",
+      "quantity": 6,
+      "unit_price": 353.86
+    },
+    {
+      "description": "Item 61",
+      "quantity": 10,
+      "unit_price": 55.45
+    },
+    {
+      "description": "Item 62",
+      "quantity": 8,
+      "unit_price": 468.48
+    },
+    {
+      "description": "Item 63",
+      "quantity": 4,
+      "unit_price": 95.37
+    },
+    {
+      "description": "Item 64",
+      "quantity": 1,
+      "unit_price": 221.54
+    },
+    {
+      "description": "Item 65",
+      "quantity": 10,
+      "unit_price": 291.01
+    },
+    {
+      "description": "Item 66",
+      "quantity": 7,
+      "unit_price": 42.05
+    },
+    {
+      "description": "Item 67",
+      "quantity": 7,
+      "unit_price": 464.51
+    },
+    {
+      "description": "Item 68",
+      "quantity": 6,
+      "unit_price": 67.96
+    },
+    {
+      "description": "Item 69",
+      "quantity": 10,
+      "unit_price": 27.11
+    },
+    {
+      "description": "Item 70",
+      "quantity": 8,
+      "unit_price": 285.87
+    },
+    {
+      "description": "Item 71",
+      "quantity": 3,
+      "unit_price": 450.97
+    },
+    {
+      "description": "Item 72",
+      "quantity": 2,
+      "unit_price": 317.22
+    },
+    {
+      "description": "Item 73",
+      "quantity": 3,
+      "unit_price": 131.25
+    },
+    {
+      "description": "Item 74",
+      "quantity": 10,
+      "unit_price": 397.24
+    },
+    {
+      "description": "Item 75",
+      "quantity": 1,
+      "unit_price": 129.11
+    },
+    {
+      "description": "Item 76",
+      "quantity": 3,
+      "unit_price": 43.36
+    },
+    {
+      "description": "Item 77",
+      "quantity": 9,
+      "unit_price": 205.35
+    },
+    {
+      "description": "Item 78",
+      "quantity": 2,
+      "unit_price": 321.84
+    },
+    {
+      "description": "Item 79",
+      "quantity": 10,
+      "unit_price": 290.19
+    },
+    {
+      "description": "Item 80",
+      "quantity": 9,
+      "unit_price": 493.03
+    },
+    {
+      "description": "Item 81",
+      "quantity": 5,
+      "unit_price": 124.32
+    },
+    {
+      "description": "Item 82",
+      "quantity": 6,
+      "unit_price": 409.04
+    },
+    {
+      "description": "Item 83",
+      "quantity": 7,
+      "unit_price": 226.22
+    },
+    {
+      "description": "Item 84",
+      "quantity": 6,
+      "unit_price": 313.25
+    },
+    {
+      "description": "Item 85",
+      "quantity": 8,
+      "unit_price": 238.5
+    },
+    {
+      "description": "Item 86",
+      "quantity": 1,
+      "unit_price": 147.53
+    },
+    {
+      "description": "Item 87",
+      "quantity": 8,
+      "unit_price": 144.21
+    },
+    {
+      "description": "Item 88",
+      "quantity": 6,
+      "unit_price": 30.22
+    },
+    {
+      "description": "Item 89",
+      "quantity": 7,
+      "unit_price": 11.82
+    },
+    {
+      "description": "Item 90",
+      "quantity": 9,
+      "unit_price": 292.65
+    },
+    {
+      "description": "Item 91",
+      "quantity": 2,
+      "unit_price": 308.66
+    },
+    {
+      "description": "Item 92",
+      "quantity": 8,
+      "unit_price": 64.86
+    },
+    {
+      "description": "Item 93",
+      "quantity": 7,
+      "unit_price": 291.43
+    },
+    {
+      "description": "Item 94",
+      "quantity": 2,
+      "unit_price": 395.32
+    },
+    {
+      "description": "Item 95",
+      "quantity": 3,
+      "unit_price": 284.51
+    },
+    {
+      "description": "Item 96",
+      "quantity": 3,
+      "unit_price": 418.21
+    },
+    {
+      "description": "Item 97",
+      "quantity": 9,
+      "unit_price": 27.38
+    },
+    {
+      "description": "Item 98",
+      "quantity": 5,
+      "unit_price": 126.66
+    },
+    {
+      "description": "Item 99",
+      "quantity": 7,
+      "unit_price": 347.28
+    },
+    {
+      "description": "Item 100",
+      "quantity": 9,
+      "unit_price": 12.75
+    }
+  ],
+  "tax_rate": 0.07
+}
