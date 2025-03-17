@@ -59,7 +59,7 @@ class VoiceNotepad(QWidget):
 
         #Connect button signals to slots
         
-        self.button_1_clicked.connect(self.button_1_clicked)
+        self.button_1.clicked.connect(self.button_1_clicked)
         self.button_2.clicked.connect(self.button_2_clicked)
 
         # Create layouts
