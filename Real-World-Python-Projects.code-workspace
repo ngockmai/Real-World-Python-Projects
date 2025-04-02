@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../AV-networked-devices-management"
 		}
 	],
 	"settings": {}

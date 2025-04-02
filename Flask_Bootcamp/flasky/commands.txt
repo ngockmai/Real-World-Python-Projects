@@ -1,0 +1,114 @@
+pip freeze > requirements.txt
+pip install -r requirements.txt
+----
+virtual environment
+py -3 -m venv .venv
+.venv\Scripts\activate
+---
+pip install Flask
+flask --app hello run --debug
+
+#Set flask environment to hello.py on Windows
+set FLASK_APP=hello.py
+$env:FLASK_APP = "hello.py"
+flask run
+
+-----
+
+#DATABASE
+
+(venv) $ flask shell
+>>> from hello import db
+>>> db.create_all()
+
+>>> db.drop_all()
+>>> db.create_all()
+
+Inserting Rows
+The following example creates a few roles and users:
+>>> from hello import Role, User
+>>> admin_role = Role(name='Admin')
+>>> mod_role = Role(name='Moderator')
+>>> user_role = Role(name='User')
+>>> user_john = User(username='john', role=admin_role)
+>>> user_susan = User(username='susan', role=user_role)
+>>> user_david = User(username='david', role=user_role)
+
+>>> db.session.add(admin_role)
+>>> db.session.add(mod_role)
+>>> db.session.add(user_role)
+>>> db.session.add(user_john)
+>>> db.session.add(user_susan)
+>>> db.session.add(user_david)
+
+Or, more concisely:
+>>> db.session.add_all([admin_role, mod_role, user_role,
+... user_john, user_susan, user_david])
+
+>>> db.session.commit()
+
+Modifying rows:
+>>> admin_role.name = 'Administrator'
+>>> db.session.add(admin_role)
+>>> db.session.commit()
+
+Deleting Rows
+The database session also has a delete() method. The following example deletes the
+"Moderator" role from the database:
+>>> db.session.delete(mod_role)
+>>> db.session.commit()
+
+Querying Rows
+
+>>> Role.query.all()
+[<Role 'Administrator'>, <Role 'User'>]
+>>> User.query.all()
+[<User 'john'>, <User 'susan'>, <User 'david'>]
+
+
+>>> User.query.filter_by(role=user_role).all()
+[<User 'susan'>, <User 'david'>]
+
+#Database Migrations with Flask-Migrate
+(venv) $ pip install flask-migrate
+
+(venv) $ flask db init
+
+To make changes to your database schema with Flask-Migrate, the following procedure
+needs to be followed:
+1. Make the necessary changes to the model classes.
+2. Create an automatic migration script with the flask db migrate command.
+flask db migrate -m "initial migration"
+3. Review the generated script and adjust it so that it accurately represents the
+changes that were made to the models.
+4. Add the migration script to source control.
+5. Apply the migration to the database with the flask db upgrade command. flask db upgrade
+
+Adding More Migrations
+1. Make the necessary changes in the database models.
+2. Generate a migration with the flask db migrate command.
+3. Review the generated migration script and correct it if it has any inaccuracies.
+4. Apply the changes to the database with the flask db upgrade command.
+
+
+#Email
+(venv) $ pip install flask-mail
+
+import from environment variables for email credentials
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
