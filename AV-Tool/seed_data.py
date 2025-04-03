@@ -1,17 +1,22 @@
-# Import app and db from app/main
+import os
 from app import create_app, db
-from app.models import db, User, Role, Campus, Building, Room, Category, Device
+from app.models import User, Role, Campus, Building, Room, Category, Device
 import random
 from faker import Faker
-import os
 
 fake = Faker()
 
 def seed_database(config_name='default'):
+    
     # Create the app with the specified configuration
     app = create_app(config_name)
+    
+    # Establish the app context
     with app.app_context(): # Use app context
     
+        # (Already imported above) Import models within the app context to ensure they bind to the correct app
+        
+        
         # Clear existing data
         db.drop_all()
         db.create_all()
@@ -73,4 +78,4 @@ def seed_database(config_name='default'):
 if __name__ == '__main__':
     # Use the same config logic as app.py
     config_name = os.getenv('FLASK_CONFIG') or 'default'
-    seed_database()
+    seed_database(config_name)
