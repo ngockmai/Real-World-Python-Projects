@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>AV Tool</title>
-    </head>
-    <body>
-        <h1>AV Tool</h1>
-    </body>
-</html>
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %} Index {% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+
+    </style>
+{% endblock %}
+{% block page_content %} 
+<div class="page-header">
+    <!-- <h1>Hello {% if name %} {{ name }} {% else %} Stranger {% endif %}</h1>
+    {% if not known %}
+    <p>Pleased to meet you!</p>
+    {% else %}
+    <p>Happy to see you again!</p>
+    {% endif %} -->
+    <!-- <p>The local date and time is {{ moment(current_time).format('LLL')}}.</p>
+    <p>That was {{ moment(current_time).fromNow(refresh=True) }}</p> -->
+</div>
+<!-- {{ wtf.quick_form(form) }} -->
+{% endblock %}
