@@ -1,38 +1,47 @@
-{% extends "bootstrap/base.html" %}
+{% from 'bootstrap5/nav.html' import render_nav_item %}
 
-{% block title %} Flasky {% endblock %}
-{% block head %}
-    {{ super() }}
-    <link rel="shortcut icon" href="{{url_for('static', filename='favicon.png')}}" type="image/x-icon">
-{% endblock %}
-{% block navbar %}
-<div class="navbar navbar-inverse" role="navigation">
-<div class="container">
-<div class="navbar-header">
-<button type="button" class="navbar-toggle"
-data-toggle="collapse" data-target=".navbar-collapse">
-<span class="sr-only">Toggle navigation</span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-</button>
-<a class="navbar-brand" href="/">Flasky</a>
-</div>
-<div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-<li><a href="/">Home</a></li>
-</ul>
-</div>
-</div>
-</div>
-{% endblock %}
-{% block content %}
-<div class="container">
-    {% block page_content %}{% endblock %}
-</div>
-{% endblock %}
+<!doctype html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-{% block scripts %}
-{{ super() }}
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+        {% endblock %}
 
-{% endblock %}
+        <title>Your page title</title>
+        {% endblock %}
+    </head>
+    <body>
+        <div>
+            <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="background-color: #E3F2FD" data-bs-theme="light">
+            <div class="container-fluid container">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">AV Tool</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        {{ render_nav_item('main.index', 'Home') }}
+                    </li>
+                    <!-- Add more nav items as needed -->
+                </ul>
+            </div>
+            </div>
+        </nav>
+        </div>
+        <!-- Your page content -->
+        {% block content %}{% endblock %}
+
+        {% block scripts %}
+            <!-- Optional JavaScript -->
+            {{ bootstrap.load_js() }}
+        {% endblock %}
+    </body>
+</html>

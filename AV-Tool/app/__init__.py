@@ -1,12 +1,12 @@
 from flask import Flask
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap5
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from config import config
 
 # Initialize extensions
-bootstrap = Bootstrap()
+bootstrap = Bootstrap5()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
@@ -29,3 +29,4 @@ def create_app(config_name='default'):
     app.register_blueprint(main_blueprint)
     
     return app
+

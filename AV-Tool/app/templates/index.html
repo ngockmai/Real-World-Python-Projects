@@ -1,22 +1,49 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% block title %} Index {% endblock %}
-{% block head %}
-    {{ super() }}
-    <style>
+{% from 'bootstrap5/table.html' import render_table %}
 
-    </style>
-{% endblock %}
-{% block page_content %} 
-<div class="page-header">
-    <!-- <h1>Hello {% if name %} {{ name }} {% else %} Stranger {% endif %}</h1>
-    {% if not known %}
-    <p>Pleased to meet you!</p>
+{% block title %} Device List {% endblock %}
+
+{% block content %}
+<div class="container">
+    <br>
+    <h1>AV Device List</h1>
+    
+    {% if devices %}
+        {{ render_table(
+            devices,
+            titles=[
+                ('campus_name', 'Campus'),
+                ('building_name', 'Building'),
+                ('room_number', 'Room Number'),
+                ('model_name', 'Model Name'),
+                ('category_name', 'Category'),
+                ('ip_address', 'IP Address'),
+                ('hostname', 'Host Name'),
+                ('mac_address', 'MAC Address'),
+                ('serial_number', 'Serial Number'),
+                ('firmware_version', 'Firmware Version'),
+                ('device_link', 'Device Link'),
+            ],
+            table_classes='table table-striped table-bordered',
+            header_classes='thead-dark',
+            body_classes='table-group-divider',
+            responsive=True,
+            responsive_class='table-responsive-sm',
+            show_actions=True,
+            model=Device,
+            custom_actions=[
+                ('Edit', 'pencil', ('main.edit_device' )),
+                ('Delete', 'trash', ('main.delete_device')),
+            ],
+            ) }}
     {% else %}
-    <p>Happy to see you again!</p>
-    {% endif %} -->
-    <!-- <p>The local date and time is {{ moment(current_time).format('LLL')}}.</p>
-    <p>That was {{ moment(current_time).fromNow(refresh=True) }}</p> -->
-</div>
-<!-- {{ wtf.quick_form(form) }} -->
+        <p>No devices found in the database.</p>
+    {% endif %}
+
+    
+{{ render_table() }}
+
+    <footer class="mt-5">
+        <p>&copy; 2023 AV-Tool. All rights reserved.</p>
+    </footer>
 {% endblock %}
