@@ -1,0 +1,42 @@
+
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the virtual environment
+.venv\Scripts\activate
+
+# Install the required packages
+pip install -r requirements.txt
+
+# Run the application
+python manage.py runserver
+
+# Run the application in debug mode
+python manage.py runserver --noreload
+
+# Run the application in production mode
+python manage.py runserver --noreload --settings=settings.production
+
+# Run the application in production mode with debug mode
+python manage.py runserver --noreload --settings=settings.production --debug
+
+# Run the application in production mode with debug mode and auto-reload
+python manage.py runserver --noreload --settings=settings.production --debug --auto-reload
+
+# Create an app named 'devices' in the project
+python manage.py startapp devices
+
+# Create a superuser
+python manage.py createsuperuser
+
+# Create a superuser with a custom username and password
+python manage.py createsuperuser --username=admin --email=admin@example.com
+
+# Create a superuser with a custom username, password, and email
+python manage.py createsuperuser --username=admin --email=admin@example.com --no-input
+
+# Make Migrations
+python manage.py makemigrations
+
+# Run Migrations
+python manage.py migrate
