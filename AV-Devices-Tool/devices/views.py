@@ -1,14 +1,257 @@
+import requests
 from django.shortcuts import render
-from devices.models import Device
+from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
-
-# Create your views here.
+def authenticate_session():
+    auth_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/auth"
+    auth_payload = {
+        "UserName" : settings.API_USERNAME,
+        "Password" : settings.API_PASSWORD,
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    session = requests.Session()
+    
+    try:
+        response = session.post(auth_url, json=auth_payload, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses
+        return session, None
+    except (requests.RequestException, ValueError) as e:
+        return None, f"Authentication failed: {str(e)}"
+    
+def build_tree_structure(location_tree):
+    location_map = {item["Location"]["LocationId"]: item["Location"] for item in location_tree}
+    
+    #Initialize the tree structure: UoM > Campuses > Buildings > Rooms
+    tree={"UoM" : {"id": 1, "campuses": {}}}
+    
+    for item in location_tree:
+        loc = item["Location"]
+        if loc["Status"] != "Active":
+            continue
+        loc_id = loc["LocationId"]
+        loc_name = loc["LocationName"]
+        parent_id = loc.get("ParentLocationId")
+        
+        # UoM is the root node
+        if loc_id ==1:
+            continue
+        
+        # Campuses: direct children of UoM (ParentLocationId = 1)
+        if parent_id == 1:
+            if loc_name not in tree["UoM"]["campuses"]:
+                tree["UoM"]["campuses"][loc_name] = {"id": loc_id, "buildings": {}}
+                
+        # Buildings: children of campuses
+        elif parent_id in location_map:
+            campus = location_map.get(parent_id)
+            
+            # Skip if the campus is not in the tree structure
+            if campus["ParentLocationId"] != 1:
+                continue
+            campus_name = campus["LocationName"]
+            if campus_name not in tree["UoM"]["campuses"]:
+                tree["UoM"]["campuses"][campus_name] = {"id": parent_id, "buildings": {}}
+            tree["UoM"]["campuses"][campus_name]["buildings"][loc_name] = {"id": loc_id, "rooms": []}
+    
+    # Add rooms to buildings
+    for item in location_tree:
+        loc = item["Location"]
+        if loc["Status"] != "Active":
+            continue
+        loc_id = loc["LocationId"]
+        loc_name = loc["LocationName"]
+        parent_id = loc.get("ParentLocationId")
+        rooms = item["Rooms"]
+        
+        # Skip UoM and campuses (no rooms directly under them)
+        if not parent_id or parent_id == 1:
+            continue
+        
+        # Find the campus
+        parent_loc = location_map.get(parent_id)
+        if not parent_loc or parent_loc["ParentLocationId"] != 1:
+            continue
+        campus_name = parent_loc["LocationName"]
+        
+        # Ensure the campuses and buildings exists in the tree structure
+        if campus_name not in tree["UoM"]["campuses"]:
+            tree["UoM"]["campuses"][campus_name] = {"id": parent_id, "buildings": {}}
+        if loc_name not in tree["UoM"]["campuses"][campus_name]["buildings"]:
+            tree["UoM"]["campuses"][campus_name]["buildings"][loc_name] = {"id": loc_id, "rooms": []}
+            
+        # Add rooms to the buildings
+        for room in rooms:
+            if room["Status"] != "Active":
+                continue
+            tree["UoM"]["campuses"][campus_name]["buildings"][loc_name]["rooms"].append({
+                "room_id": room["RoomId"],
+                "room_name": room["RoomName"],              
+            })
+            
+    return tree
+    
+def process_devices(devices, location_tree):
+    # Build mapping for lookup
+    location_map = {item["Location"]["LocationId"]: item["Location"] for item in location_tree}
+    room_map = {}
+    
+    for item in location_tree:
+        for room in item["Rooms"]:
+            room_map[room["RoomId"]] = {
+                "room_id": room["RoomId"],
+                "room_name": room["RoomName"],
+                "LocationId": room["LocationId"]
+            }
+    processed_devices = []
+    for device in devices:
+        DeviceName, Status = parse_device_name(device.get("DeviceName", "N/A"))
+        room_id = device.get("RoomId", "N/A")
+        device_id = device.get("DeviceId", "N/A")
+        
+        # Find room details
+        room = room_map.get(room_id)
+        location_id = room["LocationId"] if room else None
+        building = location_map.get(location_id)
+        campus_id = building["ParentLocationId"] if building else None
+        campus = location_map.get(campus_id)
+        
+        processed_device = {
+        "device_id": device_id,  # For linking to detail page
+            "room_id": room_id,
+            "room_name": room["RoomName"] if room else "N/A",
+            "building_name": building["LocationName"] if building else "N/A",
+            "campus_name": campus["LocationName"] if campus else "N/A",
+            "uofm_name": "UofM",
+            "status": device.get("LiveStatus", {}).get("DeviceStatus", "N/A"),
+            "type": device.get("DeviceType", "N/A"),
+            "manufacturer": manufacturer,
+            "model": model,
+            "firmware": firmware,
+            "device_name": device.get("DeviceName", "N/A"),
+            "port": f"{device.get('ControllerPortType', 'N/A')} {device.get('ControllerPortNumber', 'N/A')}",
+        }
+        processed_devices.append(processed_device)
+    return processed_devices
 def index(request):
+    """Main view to render the initial page with the tree structure."""
+    treeview_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/locations/treeview"
     
-    # Query all devices
-    devices = Device.objects.all().select_related('room__building__campus', 'category')
+    # Authenticate
+    session, error = authenticate_session()
+    if error:
+        context = {'tree': {}, 'error_message': error}
+        return render(request, 'devices/index.html', context)
     
+    # Fetch the location tree
+    try:
+        tree_response = session.get(treeview_url, headers={"Accept": "application/json"})
+        tree_response.raise_for_status()
+        tree_data = tree_response.json().get("Locations", [])
+        tree = build_tree_structure(tree_data)
+    except requests.RequestException as e:
+        context = {'tree': {}, 'error_message': f"Failed to fetch location tree from API: {str(e)}"}
+        return render(request, 'devices/index.html', context)
+
     context = {
-        'devices': devices
+        'tree': tree,
+        'error_message': None,
+        'location_tree': tree_data,  # Pass location_tree for use in other views
     }
     return render(request, 'devices/index.html', context)
+
+def get_devices(request):
+    """View to fetch all devices (UofM level)."""
+    devices_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/devices"
+
+    # Authenticate
+    session, error = authenticate_session()
+    if error:
+        return JsonResponse({'error': error}, status=500)
+
+    # Fetch devices
+    try:
+        devices_response = session.get(devices_url, headers={"Accept": "application/json"})
+        devices_response.raise_for_status()
+        devices_data = devices_response.json()
+        devices = devices_data.get("Devices", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch devices from API: {str(e)}"}, status=500)
+
+    # Fetch location tree for mapping
+    treeview_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/locations/treeview"
+    try:
+        tree_response = session.get(treeview_url, headers={"Accept": "application/json"})
+        tree_response.raise_for_status()
+        location_tree = tree_response.json().get("Locations", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch location tree from API: {str(e)}"}, status=500)
+
+    # Process devices
+    processed_devices = process_devices(devices, location_tree)
+    return JsonResponse({'devices': processed_devices})
+
+def get_devices_by_location(request, location_id):
+    """View to fetch devices for a specific location (campus or building)."""
+    devices_url = f"https://gve3.ad.umanitoba.ca:443/GVE/api/devices/location/{location_id}"
+
+    # Authenticate
+    session, error = authenticate_session()
+    if error:
+        return JsonResponse({'error': error}, status=500)
+
+    # Fetch devices
+    try:
+        devices_response = session.get(devices_url, headers={"Accept": "application/json"})
+        devices_response.raise_for_status()
+        devices_data = devices_response.json()
+        devices = devices_data.get("Devices", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch devices from API: {str(e)}"}, status=500)
+
+    # Fetch location tree for mapping
+    treeview_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/locations/treeview"
+    try:
+        tree_response = session.get(treeview_url, headers={"Accept": "application/json"})
+        tree_response.raise_for_status()
+        location_tree = tree_response.json().get("Locations", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch location tree from API: {str(e)}"}, status=500)
+
+    # Process devices
+    processed_devices = process_devices(devices, location_tree)
+    return JsonResponse({'devices': processed_devices})
+
+def get_devices_by_room(request, room_id):
+    """View to fetch devices for a specific room."""
+    devices_url = f"https://gve3.ad.umanitoba.ca:443/GVE/api/devices/room/{room_id}"
+
+    # Authenticate
+    session, error = authenticate_session()
+    if error:
+        return JsonResponse({'error': error}, status=500)
+
+    # Fetch devices
+    try:
+        devices_response = session.get(devices_url, headers={"Accept": "application/json"})
+        devices_response.raise_for_status()
+        devices_data = devices_response.json()
+        devices = devices_data.get("Devices", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch devices from API: {str(e)}"}, status=500)
+
+    # Fetch location tree for mapping
+    treeview_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/locations/treeview"
+    try:
+        tree_response = session.get(treeview_url, headers={"Accept": "application/json"})
+        tree_response.raise_for_status()
+        location_tree = tree_response.json().get("Locations", [])
+    except requests.RequestException as e:
+        return JsonResponse({'error': f"Failed to fetch location tree from API: {str(e)}"}, status=500)
+
+    # Process devices
+    processed_devices = process_devices(devices, location_tree)
+    return JsonResponse({'devices': processed_devices})

@@ -1,62 +1,81 @@
 {% extends '../base.html' %}
 
 {% block title %} Device List {% endblock %}
-
 {% block content %}
-    <h1>Devices</h1>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Left Sidebar: Tree Structure -->
+        <div class="col-md-3">
+            <h5>GVE Location Tree</h5>
+            <div class="tree">
+                <ul>
+                    {% with uofm_data=tree.UofM %}
+                        <li>
+                            <a href="#" class="tree-link" data-type="uofm" data-value="{{ uofm_data.id }}">UofM</a>
+                            <ul>
+                                {% for campus_name, campus_data in uofm_data.campuses.items %}
+                                    <li>
+                                        <a href="#" class="tree-link" data-type="campus" data-value="{{ campus_name }}" data-id="{{ campus_data.id }}">{{ campus_name }}</a>
+                                        <ul>
+                                            {% for building_name, building_data in campus_data.buildings.items %}
+                                                <li>
+                                                    <a href="#" class="tree-link" data-type="building" data-value="{{ building_name }}" data-id="{{ building_data.id }}">{{ building_name }}</a>
+                                                    <ul>
+                                                        {% for room in building_data.rooms %}
+                                                            <li>
+                                                                <a href="#" class="tree-link" data-type="room" data-value="{{ room.room_id }}">{{ room.room_name }}</a>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endwith %}
+                </ul>
+            </div>
+        </div>
+        <!-- Right Sidebar: Device List -->
 
-    {% if devices %}
-        <!-- Device Table -->
-        <table class="table table-striped table-bordered table-responsive-sm">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Room Name</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Hostname</th>
-                    <th scope="col">IP Address</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Manufacturer</th>
-                    <th scope="col">Model</th>
-                    <th scope="col">SN</th>
-                    <th scope="col">MAC Address</th>
-                    <th scope="col">Firmware</th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
-                {% for device in devices %}
-                    <tr>
-                        <td>
-                            {% if device.room %}
-                                {{ device.room.room_number}}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </td>
-                        <td>{{ device.status|default:'N/A' }}</td>
-                        <td>{{ device.hostname|default:'N/A' }}</td>
-                        <td>{{ device.ip_address|default:'N/A' }}</td>
-                        <td>
-                            {% if device.category %}
-                                {{ device.category.category_name }}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </td>
-                        <td>{{ device.manufacturer|default:'N/A' }}</td>
-                        <td>{{ device.model_name }}</td>
-                        <td>{{ device.serial_number|default:'N/A' }}</td>
-                        <td>{{ device.mac_address|default:'N/A' }}</td>
-                        <td>{{ device.firmware_version|default:'N/A' }}</td>
-                        
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No devices found in the database.</p>
-    {% endif %}
 
-    <footer class="mt-5">
-        <p>© 2023 AV-Tool. All rights reserved.</p>
-    </footer>
+<style>
+    .tree ul {
+        list-style-type: none;
+        padding-left: 20px;
+    }
+    .tree li {
+        margin: 5px 0;
+    }
+    .tree a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    .tree a:hover {
+        text-decoration: underline;
+    }
+    .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+    .status-on {
+        background-color: green;
+    }
+    .status-off {
+        background-color: red;
+    }
+    .status-unknown {
+        background-color: grey;
+    }
+    #loading {
+        margin-bottom: 10px;
+        font-style: italic;
+        color: #555;
+    }
+    </style>
 {% endblock %}
