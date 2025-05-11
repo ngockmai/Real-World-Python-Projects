@@ -40,3 +40,10 @@ python manage.py makemigrations
 
 # Run Migrations
 python manage.py migrate
+
+
+
+---
+
+Docker:
+docker run --name mongodb -v C:\mongodb\db:/data/db -p 27017:27017 -d mongo:latest

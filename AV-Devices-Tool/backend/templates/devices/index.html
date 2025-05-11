@@ -1,0 +1,14 @@
+{% extends '../base.html' %}
+
+{% block title %} Device List {% endblock %}
+{% load static %}
+{% block content %}
+<div id='react-root'></div>
+
+{% if error_message %}
+    <div class='alert alert-danger' role='alert'>{{error_message}}</div>
+{% endif %}
+
+<!-- Load frontend bundle -->
+ <script src="{% static 'dist/assets/index.js' %}"></script>
+{% endblock %}
