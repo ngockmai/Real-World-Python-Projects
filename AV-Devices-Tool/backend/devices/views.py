@@ -3,7 +3,6 @@ from django.shortcuts import render
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
 from django.http import JsonResponse
-from av_tool.mongodb import get_collection
 
 def authenticate_session():
     auth_url = "https://gve3.ad.umanitoba.ca:443/GVE/api/auth"
@@ -324,14 +323,3 @@ def device_detail(request, device_id):
         'error_message': None,
     }
     return render(request, 'devices/device_detail.html', context)
-
-def test_mongodb_connection(request):
-    try:
-        collection = get_collection('test_collection')
-        # Insert a test document
-        result = collection.insert_one({'test': 'connection'})
-        # Delete the test document
-        collection.delete_one({'_id': result.inserted_id})
-        return JsonResponse({'status': 'success', 'message': 'MongoDB connection successful'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

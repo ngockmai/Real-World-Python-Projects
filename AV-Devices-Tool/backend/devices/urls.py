@@ -13,8 +13,3 @@ api_urlpatterns = [
     path('devices/room/<int:room_id>/', views.get_devices_by_room, name='get_devices_by_room'),
     path('tree-data/', views.get_tree_data, name='get_tree_data'),
 ]
-
-urlpatterns = [
-    # ... existing urls ...
-    path('test-mongodb/', views.test_mongodb_connection, name='test_mongodb'),
-]

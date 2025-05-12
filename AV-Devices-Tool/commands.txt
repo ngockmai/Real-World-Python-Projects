@@ -46,4 +46,19 @@ python manage.py migrate
 ---
 
 Docker:
-docker run --name mongodb -v C:\mongodb\db:/data/db -p 27017:27017 -d mongo:latest
+docker run --name postgres -v E:\docker\postgres\data:/var/lib/postgresql/data -p 5678:5678 -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=AVCTS!324 -e POSTGRES_DB=gve -d postgres:latest
+docker logs postgres
+
+### This starts PostgreSQL with the specified configuration.
+cd C:\project
+docker-compose up -d
+
+### Access the container’s shell and run psql
+docker exec -it postgres psql -U admin -d gve
+At the gve=# prompt, run commands like:
+sql
+
+Copy
+\l  -- List databases
+\dt -- List tables
+Exit with \q.

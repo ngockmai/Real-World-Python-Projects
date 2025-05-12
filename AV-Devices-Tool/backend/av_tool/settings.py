@@ -79,18 +79,18 @@ WSGI_APPLICATION = 'av_tool.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+DATABASE_USERNAME = os.getenv('DATABASE_USERNAME')
+DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD')
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gve',
+        'USER': DATABASE_USERNAME,
+        'PASSWORD': DATABASE_PASSWORD,
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
-
-# MongoDB Connection Settings
-MONGODB_URI = 'mongodb://localhost:27017/'
-MONGODB_DB_NAME = 'av_tool_db'
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
