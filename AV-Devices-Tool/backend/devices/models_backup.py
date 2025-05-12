@@ -63,7 +63,7 @@ class Category(models.Model):
     
 class Device(models.Model):
     device_id = models.AutoField(primary_key=True)
-    model_name = models.CharField(max_length=100, null=True)
+    model_name = models.CharField(max_length=100, null=False)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     mac_address = models.CharField(max_length=17, blank=True, null=True)
     hostname = models.CharField(max_length=250, blank=True, null=True)

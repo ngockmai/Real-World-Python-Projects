@@ -1,4 +1,4 @@
-version: '3.8'
+
 services:
   postgres:
     image: postgres:latest
@@ -6,9 +6,33 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - E:/docker/postgres/data:/var/lib/postgresql/data
+      - C:/docker/postgres/data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=AVCTS!324
       - POSTGRES_DB=gve
+    networks:
+      - gve-network
     restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://admin:AVCTS!324@postgres:5432/gve
+      - GVE_API_URL=https://gve3.ad.umanitoba.ca:443/GVE/api
+      - API_USERNAME=admin
+      - API_PASSWORD=AVCTS!324
+    networks:
+      - gve-network
+networks:
+  gve-network:
+    driver: bridge

@@ -42,3 +42,11 @@ frontend/yarn-error.log*
 .vscode/
 *.swp
 *.swo
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.override.yml
+docker-compose.override.yml
+docker-compose.override.yml
+
