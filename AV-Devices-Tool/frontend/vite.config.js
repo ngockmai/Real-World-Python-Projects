@@ -3,8 +3,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
     plugins: [
-        react()
+        react(),
     ],
+    css: {
+        postcss: './postcss.config.js',
+    },
     build: {
         outDir: '../static/dist',
         emptyOutDir: true,
