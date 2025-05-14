@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react'
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -7,6 +8,11 @@ export default defineConfig({
     ],
     css: {
         postcss: './postcss.config.js',
+    },
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
     },
     build: {
         outDir: '../static/dist',
@@ -26,11 +32,7 @@ export default defineConfig({
             '/api': {
                 target: 'http://127.0.0.1:8000',
                 changeOrigin: true,
-            },
-            '/device': {
-                target: 'http://127.0.0.1:8000',
-                changeOrigin: true,
-            },
+            }
         },
     }
 })

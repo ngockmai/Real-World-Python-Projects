@@ -43,6 +43,7 @@ rooms_collection = db['rooms']
 locations_collection = db['locations']
 models_collection = db['models']
 manufacturers_collection = db['manufacturers']
+treeview_collection = db['locations_treeview']
 
 ###  Devices
 # Fetch and update devices
@@ -248,6 +249,39 @@ def update_locations():
     except requests.RequestException as e:
         logger.error(f"Scheduled update failed - Error fetching locations: {str(e)}")
 
+# Fetch and update the location tree view from API
+def update_treeview():
+    session, error = authenticate_session()
+    if error:
+        logger.error(f"Scheduled update failed - Authentication error: {error}")
+        return
+    
+    try:
+        treeview_url = f"{settings.GVE_API_URL}/locations/treeview"
+        treeview_response = session.get(treeview_url, headers={"Accept": "application/json"}, timeout=10)
+        treeview_response.raise_for_status()
+        treeview_data = treeview_response.json()
+        treeview = treeview_data.get("Locations", [])
+        
+        for item in treeview:
+            treeview_doc = {
+                "LocationId": item.get("Location").get("LocationId"),
+                "LocationName": item.get("Location").get("LocationName"),
+                "ParentLocationId": item.get("Location").get("ParentLocationId"),
+                "Status": item.get("Location").get("Status"),
+                "Rooms": item.get("Rooms"),
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            treeview_collection.update_one(
+                {"LocationId": treeview_doc["LocationId"]},
+                {"$set": treeview_doc},
+                upsert=True
+            )
+        logger.info(f"Treeview updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} CDT")
+        
+    except requests.RequestException as e:
+        logger.error(f"Scheduled update failed - Error fetching treeview: {str(e)}")
+        
 # Serve devices from MongoDB
 class DeviceListView(APIView):
     def get(self, request):
@@ -288,6 +322,63 @@ class DeviceDetailView(APIView):
         except Exception as e:
             logger.error(f"Error fetching device details: {str(e)}")
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+
+# Get models from MongoDB
+class ModelListView(APIView):
+    def get(self, request):
+        try:
+            stored_models = list(models_collection.find({}, {"_id": 0}))
+            total = len(stored_models)
+            if stored_models:
+                return JsonResponse({
+                    'models': stored_models,
+                    'total': total,
+                    'last_updated': stored_models[0]["last_updated"] if stored_models else None
+                }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            logger.error(f"Error fetching models from MongoDB: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+# Get single model with ID
+class ModelDetailView(APIView):
+    def get(self, request, model_id):
+        try:
+            stored_model = models_collection.find_one({"ModelId": model_id}, {"_id": 0})
+            if not stored_model:
+                return JsonResponse({'error': 'Model not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'model': stored_model}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching model details: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Get manufacturers from MongoDB
+class ManufacturerListView(APIView):
+    def get(self, request):
+        try:
+            stored_manufacturers = list(manufacturers_collection.find({}, {"_id": 0}))
+            total = len(stored_manufacturers)
+            if stored_manufacturers:
+                return JsonResponse({
+                    'manufacturers': stored_manufacturers,
+                    'total': total,
+                    'last_updated': stored_manufacturers[0]["last_updated"] if stored_manufacturers else None
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching manufacturers from MongoDB: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Get single manufacturer with ID
+class ManufacturerDetailView(APIView):
+    def get(self, request, manufacturer_id):
+        try:
+            stored_manufacturer = manufacturers_collection.find_one({"ManufacturerId": manufacturer_id}, {"_id": 0})
+            if not stored_manufacturer:
+                return JsonResponse({'error': 'Manufacturer not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'manufacturer': stored_manufacturer}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching manufacturer details: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Serve controllers from MongoDB
 class ControllerListView(APIView):
@@ -411,13 +502,45 @@ class LocationDetailView(APIView):
             logger.error(f"Error fetching location details: {str(e)}")
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+### Treeview
+# Serve treeview from MongoDB
+class TreeView(APIView):
+    def get(self, request):
+        force_update = request.GET.get('force_update', 'false').lower() == 'true'
+        
+        if force_update:
+            update_treeview()
+            stored_treeview = list(treeview_collection.find({}, {"_id": 0}))
+            total = len(stored_treeview)
+            return JsonResponse({
+                'treeview': stored_treeview,
+                'total': total,
+                'last_updated': stored_treeview[0]["last_updated"] if stored_treeview else None,
+                'message': 'Treeview updated manually'
+            }, status=status.HTTP_200_OK)
+            
+        try:
+            stored_treeview = list(treeview_collection.find({}, {"_id": 0}))
+            total = len(stored_treeview)
+            return JsonResponse({
+                'treeview': stored_treeview,
+                'total': total,
+                'last_updated': stored_treeview[0]["last_updated"] if stored_treeview else None
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching treeview from MongoDB: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+            
 # Initialize scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_devices, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
 scheduler.add_job(update_controllers, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
 scheduler.add_job(update_rooms, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
 scheduler.add_job(update_locations, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
-
+scheduler.add_job(update_treeview, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
 
 scheduler.start()
 
