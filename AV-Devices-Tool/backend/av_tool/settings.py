@@ -1,6 +1,7 @@
 import os
 import dj_database_url
 from dotenv import load_dotenv
+from pymongo import MongoClient
 
 """
 Django settings for av_tool project.
@@ -82,6 +83,15 @@ WSGI_APPLICATION = 'av_tool.wsgi.application'
 # DATABASE_USERNAME = os.getenv('DATABASE_USERNAME') # Comment out or remove
 # DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD') # Comment out or remove
 
+
+# MongoDB settings
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
+MONGO_DB_NAME = 'gve'
+
+# Connect to MongoDB
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB_NAME]
+
 # Use DATABASE_URL environment variable set by Docker Compose
 DATABASE_URL = os.getenv('DATABASE_URL')
 
@@ -92,10 +102,10 @@ if DATABASE_URL:
 else:
     # Fallback or default database configuration if DATABASE_URL is not set
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        # 'default': {
+        #     'ENGINE': 'django.db.backends.sqlite3',
+        #     'NAME': BASE_DIR / 'db.sqlite3',
+        # }
     }
 
 # Password validation
