@@ -40,6 +40,10 @@ db = client[settings.MONGO_DB_NAME]
 devices_collection = db['devices']
 controllers_collection = db['controllers']
 rooms_collection = db['rooms']
+locations_collection = db['locations']
+models_collection = db['models']
+manufacturers_collection = db['manufacturers']
+
 ###  Devices
 # Fetch and update devices
 def update_devices():
@@ -54,6 +58,10 @@ def update_devices():
         devices_response.raise_for_status()
         devices_data = devices_response.json()
         devices = devices_data.get("Devices", [])
+        
+        # Track unique ModelId and ManufacturerId to avoid duplicate API calls
+        fetched_model_ids = set()
+        fetched_manufacturer_ids = set()
 
         for device in devices:
             live_status = device.get("LiveStatus", {})
@@ -78,15 +86,56 @@ def update_devices():
                     "MaxLampHours": live_status.get("MaxLampHours"),
                     "OperationHours": live_status.get("OperationHours"),
                     "FilterHours": live_status.get("FilterHours"),
-                    "MaxFilterHours": live_status.get("MaxFilterHours")
+                    "MaxFilterHours": live_status.get("MaxFilterHours"),
                 },
-                "ControllerCommandGuid": device.get("ControllerCommandGuid")
+                "ControllerCommandGuid": device.get("ControllerCommandGuid"),
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             devices_collection.update_one(
                 {"DeviceId": device.get("DeviceId")},
                 {"$set": device_doc},
                 upsert=True
             )
+            
+            # Fetch and update model data
+            model_id = device.get("ModelId")
+            if model_id and model_id not in fetched_model_ids:
+                model_url = f"{settings.GVE_API_URL}/devices/model/{model_id}"
+                model_response = session.get(model_url, headers={"Accept": "application/json"}, timeout=10)
+                model_response.raise_for_status()
+                model_data = model_response.json().get("Model", {})
+                model_doc = {
+                    "ModelId": model_data.get("ModelId"),
+                    "ModelName": model_data.get("ModelName"),
+                    "ManufacturerId": model_data.get("ManufacturerId"),
+                    "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                }
+                models_collection.update_one(
+                    {"ModelId": model_doc["ModelId"]},
+                    {"$set": model_doc},
+                    upsert=True
+                )
+                fetched_model_ids.add(model_id)
+                
+                # Fetch manufacturer data only if not already fetched
+                manufacturer_id = model_data.get("ManufacturerId")
+                if manufacturer_id and manufacturer_id not in fetched_manufacturer_ids:
+                    manufacturer_url = f"{settings.GVE_API_URL}/devices/manufacturer/{manufacturer_id}"
+                    manufacturer_response = session.get(manufacturer_url, headers={"Accept": "application/json"}, timeout=10)
+                    manufacturer_response.raise_for_status()
+                    manufacturer_data = manufacturer_response.json().get("Manufacturer", {})
+                    manufacturer_doc = {
+                        "ManufacturerId": manufacturer_data.get("ManufacturerId"),
+                        "ManufacturerName": manufacturer_data.get("ManufacturerName"),
+                        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                    manufacturers_collection.update_one(
+                        {"ManufacturerId": manufacturer_doc["ManufacturerId"]},
+                        {"$set": manufacturer_doc},
+                        upsert=True
+                    )
+                    fetched_manufacturer_ids.add(manufacturer_id)
+
         logger.info(f"Devices updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} CDT")
     except requests.RequestException as e:
         logger.error(f"Scheduled update failed - Error fetching devices: {str(e)}")
@@ -123,7 +172,8 @@ def update_controllers():
                 "ControllerType": controller.get("ControllerType"),
                 "ModelName": controller.get("ModelName"),
                 "PartNumber": controller.get("PartNumber"),
-                "FirmwareVersion": controller.get("FirmwareVersion")
+                "FirmwareVersion": controller.get("FirmwareVersion"),
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             controllers_collection.update_one(
                 {"ControllerId": controller.get("ControllerId")},
@@ -156,6 +206,7 @@ def update_rooms():
                 "LocationId": room.get("LocationId"),
                 "Category": room.get("Category"),
                 "Status": room.get("Status"),
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             rooms_collection.update_one(
                 {"RoomId": room.get("RoomId")},
@@ -166,9 +217,53 @@ def update_rooms():
     except requests.RequestException as e:
         logger.error(f"Scheduled update failed - Error fetching rooms: {str(e)}")
 
+# Fetch and update locations
+def update_locations():
+    session, error = authenticate_session()
+    if error:
+        logger.error(f"Scheduled update failed - Authentication error: {error}")
+        return
+
+    try:
+        locations_url = f"{settings.GVE_API_URL}/locations"
+        locations_response = session.get(locations_url, headers={"Accept": "application/json"}, timeout=10)
+        locations_response.raise_for_status()
+        locations_data = locations_response.json()
+        locations = locations_data.get("Locations", [])
+
+        for location in locations:
+            location_doc = {
+                "LocationId": location.get("LocationId"),
+                "LocationName": location.get("LocationName"),
+                "ParentLocationId": location.get("ParentLocationId"),
+                "Status": location.get("Status"),
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            locations_collection.update_one(
+                {"LocationId": location.get("LocationId")},
+                {"$set": location_doc},
+                upsert=True
+            )
+        logger.info(f"Locations updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} CDT")
+    except requests.RequestException as e:
+        logger.error(f"Scheduled update failed - Error fetching locations: {str(e)}")
+
 # Serve devices from MongoDB
 class DeviceListView(APIView):
     def get(self, request):
+        force_update = request.GET.get('force_update', 'false').lower() == 'true'
+
+        if force_update:
+            update_devices()
+            stored_devices = list(devices_collection.find({}, {"_id": 0}))
+            total = len(stored_devices)
+            return JsonResponse({
+                'devices': stored_devices,
+                'total': total,
+                'last_updated': stored_devices[0]["last_updated"] if stored_devices else None,
+                'message': 'Devices updated manually'
+            }, status=status.HTTP_200_OK)
+
         try:
             # Retrieve all devices from MongoDB
             stored_devices = list(devices_collection.find({}, {"_id": 0}))
@@ -206,7 +301,7 @@ class ControllerListView(APIView):
             return JsonResponse({
                 'controllers': stored_controllers,
                 'total': total,
-                # 'last_updated': stored_controllers[0]["last_updated"].isoformat() if stored_controllers else None,
+                'last_updated': stored_controllers[0]["last_updated"] if stored_controllers else None,
                 'message': 'Controllers updated manually'
             }, status=status.HTTP_200_OK)
 
@@ -216,7 +311,7 @@ class ControllerListView(APIView):
             return JsonResponse({
                 'controllers': stored_controllers,
                 'total': total,
-                # 'last_updated': stored_controllers[0]["last_updated"].isoformat() if stored_controllers else None
+                'last_updated': stored_controllers[0]["last_updated"] if stored_controllers else None
             }, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"Error fetching controllers from MongoDB: {str(e)}")
@@ -247,7 +342,7 @@ class RoomListView(APIView):
             return JsonResponse({
                 'rooms': stored_rooms,
                 'total': total,
-                # 'last_updated': stored_rooms[0]["last_updated"].isoformat() if stored_rooms else None,
+                'last_updated': stored_rooms[0]["last_updated"] if stored_rooms else None,
                 'message': 'Rooms updated manually'
             }, status=status.HTTP_200_OK)
 
@@ -257,7 +352,7 @@ class RoomListView(APIView):
             return JsonResponse({
                 'rooms': stored_rooms,
                 'total': total,
-                # 'last_updated': stored_rooms[0]["last_updated"].isoformat() if stored_rooms else None
+                'last_updated': stored_rooms[0]["last_updated"] if stored_rooms else None
             }, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"Error fetching rooms from MongoDB: {str(e)}")
@@ -275,10 +370,54 @@ class RoomDetailView(APIView):
             logger.error(f"Error fetching room details: {str(e)}")
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+### Locations
+# Serve locations from MongoDB with optional manual update
+class LocationListView(APIView):
+    def get(self, request):
+        force_update = request.GET.get('force_update', 'false').lower() == 'true'
+
+        if force_update:
+            update_locations()
+            stored_locations = list(locations_collection.find({}, {"_id": 0}))
+            total = len(stored_locations)
+            return JsonResponse({
+                'locations': stored_locations,
+                'total': total,
+                'last_updated': stored_locations[0]["last_updated"] if stored_locations else None,
+                'message': 'Locations updated manually'
+            }, status=status.HTTP_200_OK)
+
+        try:
+            stored_locations = list(locations_collection.find({}, {"_id": 0}))
+            total = len(stored_locations)
+            return JsonResponse({
+                'locations': stored_locations,
+                'total': total,
+                'last_updated': stored_locations[0]["last_updated"] if stored_locations else None
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching locations from MongoDB: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Get single location with ID
+class LocationDetailView(APIView):
+    def get(self, request, location_id):
+        try:
+            location = locations_collection.find_one({"LocationId": location_id}, {"_id": 0})
+            if not location:
+                return JsonResponse({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'location': location}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching location details: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # Initialize scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_devices, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
 scheduler.add_job(update_controllers, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_rooms, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_locations, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+
 
 scheduler.start()
 
