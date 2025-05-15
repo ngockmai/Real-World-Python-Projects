@@ -261,9 +261,29 @@ def update_treeview():
         treeview_response = session.get(treeview_url, headers={"Accept": "application/json"}, timeout=10)
         treeview_response.raise_for_status()
         treeview_data = treeview_response.json()
-        treeview = treeview_data.get("Locations", [])
+        locations = treeview_data.get("Locations", [])
         
-        for item in treeview:
+        # Build a map of LocationId to Location data for quick lookup
+        location_map = {}
+        for item in locations:
+            location = item.get("Location")
+            if location:
+                loc_id = location.get("LocationId")
+                location_map[loc_id] = {
+                    "id" : loc_id,
+                    "name" : location.get("LocationName"),
+                    "status" : location.get("Status"),
+                    "children" : [
+                       {
+                        "id" : room.get("RoomId"),
+                        "name" : room.get("RoomName"),
+                        "status" : room.get("Status"),
+                        "category" : room.get("Category"),
+                        "children" : []
+                       } for room in item.get("Rooms", [])
+                    ]
+                }
+            
             treeview_doc = {
                 "LocationId": item.get("Location").get("LocationId"),
                 "LocationName": item.get("Location").get("LocationName"),
