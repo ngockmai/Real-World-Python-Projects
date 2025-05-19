@@ -263,40 +263,86 @@ def update_treeview():
         treeview_data = treeview_response.json()
         locations = treeview_data.get("Locations", [])
         
-        # Build a map of LocationId to Location data for quick lookup
-        location_map = {}
+        # Create a map
+        nodes_map = {}
+        
+        UOFM_ROOT_ID = 1
+        
         for item in locations:
-            location = item.get("Location")
-            if location:
-                loc_id = location.get("LocationId")
-                location_map[loc_id] = {
-                    "id" : loc_id,
-                    "name" : location.get("LocationName"),
-                    "status" : location.get("Status"),
-                    "children" : [
-                       {
-                        "id" : room.get("RoomId"),
-                        "name" : room.get("RoomName"),
-                        "status" : room.get("Status"),
-                        "category" : room.get("Category"),
-                        "children" : []
-                       } for room in item.get("Rooms", [])
-                    ]
-                }
+            location_details = item.get("Location", {})
+            if not location_details:
+                continue
             
-            treeview_doc = {
-                "LocationId": item.get("Location").get("LocationId"),
-                "LocationName": item.get("Location").get("LocationName"),
-                "ParentLocationId": item.get("Location").get("ParentLocationId"),
-                "Status": item.get("Location").get("Status"),
-                "Rooms": item.get("Rooms"),
-                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            loc_id = location_details.get("LocationId")
+            
+            if loc_id is None:
+                continue
+            
+            node = {
+                "LocationId" : loc_id,
+                "LocationName" : location_details.get("LocationName"),
+                "Status": location_details.get("Status"),
             }
-            treeview_collection.update_one(
-                {"LocationId": treeview_doc["LocationId"]},
-                {"$set": treeview_doc},
-                upsert=True
-            )
+            
+            node_rooms = []
+            for room_data in item.get("Rooms", []):
+                if room_data.get("LocationId") == loc_id:
+                    node_rooms.append({
+                        "RoomId" : room_data.get("RoomId"),
+                        "RoomName" : room_data.get("RoomName"),
+                        "LocationId" : room_data.get("LocationId"),
+                        "Category" : room_data.get("Category"),
+                        "Status" : room_data.get("Status"),
+                    })
+            
+            if node_rooms:
+                node["Rooms"] = node_rooms
+            
+            nodes_map[loc_id] = node
+            
+        root_uofm_node = None    
+            
+        for item in locations:
+            location_details = item.get("Location", {})
+            loc_id = location_details.get("LocationId")
+            
+            if loc_id is None or loc_id not in nodes_map:
+                continue
+            
+            current_node = nodes_map[loc_id]
+            parent_id = location_details.get("ParentLocationId")
+            
+            if parent_id is None:
+                if loc_id == UOFM_ROOT_ID:
+                    if "Campuses" not in current_node:
+                        current_node["Campuses"] = []
+                    root_uofm_node = current_node
+            else:
+                parent_node = nodes_map.get(parent_id)
+                if parent_node:
+                    if parent_id == UOFM_ROOT_ID:
+                        if "Campuses" not in parent_node:
+                            parent_node["Campuses"] = []
+                        parent_node["Campuses"].append(current_node)
+                        
+                        if "Buildings" not in current_node:
+                            current_node["Buildings"] = []
+                    else:
+                        if "Buildings" not in parent_node:
+                            parent_node["Buildings"] = []
+                        parent_node["Buildings"].append(current_node)                  
+        
+        # Create the final treeview document
+        treeview_doc = {
+            "treeview": root_uofm_node,
+            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        treeview_collection.update_one(
+            {"treeview": treeview_doc["treeview"]},
+            {"$set": treeview_doc},
+            upsert=True
+        )
         logger.info(f"Treeview updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} CDT")
         
     except requests.RequestException as e:
