@@ -8,8 +8,8 @@ export default function Homepage() {
             <div className="flex min-h-screen flex-col">
                 <Header />
                 <div className="flex flex-1">
-                    <AppSidebar />
-                    <MainContent />
+                    {/* <AppSidebar />
+                    <MainContent /> */}
                 </div>
             </div>
         </SidebarProvider>
