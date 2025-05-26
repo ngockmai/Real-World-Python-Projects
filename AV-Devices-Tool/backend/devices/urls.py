@@ -22,7 +22,6 @@ api_urlpatterns = [
     # path('devices/room/<int:room_id>/', DeviceByRoomView.as_view(), name='device_by_room'),
     # path('devices/location/<int:location_id>/', DeviceByLocationView.as_view(), name='device_by_location'),
     
-    
     # Locations
     path('locations/', LocationListView.as_view(), name='location_list'),
     path('location/<int:location_id>/', LocationDetailView.as_view(), name='location_detail'),
