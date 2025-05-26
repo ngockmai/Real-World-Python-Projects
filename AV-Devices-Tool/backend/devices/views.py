@@ -579,7 +579,7 @@ class TreeView(APIView):
             stored_treeview = list(treeview_collection.find({}, {"_id": 0}))
             total = len(stored_treeview)
             return JsonResponse({
-                'treeview': stored_treeview,
+                'treeview': stored_treeview[0]["treeview"],
                 'total': total,
                 'last_updated': stored_treeview[0]["last_updated"] if stored_treeview else None,
                 'message': 'Treeview updated manually'
@@ -589,7 +589,7 @@ class TreeView(APIView):
             stored_treeview = list(treeview_collection.find({}, {"_id": 0}))
             total = len(stored_treeview)
             return JsonResponse({
-                'treeview': stored_treeview,
+                'treeview': stored_treeview[0]["treeview"],
                 'total': total,
                 'last_updated': stored_treeview[0]["last_updated"] if stored_treeview else None
             }, status=status.HTTP_200_OK)
@@ -598,7 +598,34 @@ class TreeView(APIView):
             logger.error(f"Error fetching treeview from MongoDB: {str(e)}")
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# Get Devices by Room
+def get_devices_by_room(room_id):
+    pipeline = [
+        # Match devices with the given RoomId
+        {"$match": {"RoomId": room_id}},
+        # Join with rooms to get the room name
+        {
+            "$lookup": {
+                "from": "rooms",
+                "localField" : "RoomId",
+                "foreignField" : "RoomId",
+                "as" : "room"
+            },        
+        },
+        {"$unwind" : {"path" : "$room", "preserveNullAndEmptyArrays" : True}},
+        # Join with controllers to get NetworkSettings
+        {
+            "$lookup": {
+                "from": "controllers",
+                "localField": "ControllerId",
+                "foreignField" : "ControllerId",
+                "as" : "controller"
+            }
+        },
+        {"$unwind" : {"path" : "$controller", "preserveNullAndEmptyArrays" : True}},
+        # Join with models to get ModelName
         
+    ]
             
 # Initialize scheduler
 scheduler = BackgroundScheduler()
