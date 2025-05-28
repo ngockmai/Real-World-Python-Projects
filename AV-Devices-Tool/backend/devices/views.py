@@ -454,6 +454,7 @@ class ControllerListView(APIView):
         if force_update:
             update_controllers()
             stored_controllers = list(controllers_collection.find({}, {"_id": 0}))
+            print(stored_controllers)
             total = len(stored_controllers)
             return JsonResponse({
                 'controllers': stored_controllers,
@@ -598,6 +599,20 @@ class TreeView(APIView):
             logger.error(f"Error fetching treeview from MongoDB: {str(e)}")
             return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_devices, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_controllers, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_rooms, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_locations, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+scheduler.add_job(update_treeview, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+
+scheduler.start()
+
+# Shut down scheduler when the application exits
+atexit.register(lambda: scheduler.shutdown())
+
+
 # Get Devices by Room
 def get_devices_by_room(room_id):
     pipeline = [
@@ -624,18 +639,190 @@ def get_devices_by_room(room_id):
         },
         {"$unwind" : {"path" : "$controller", "preserveNullAndEmptyArrays" : True}},
         # Join with models to get ModelName
-        
+        {
+            "$lookup": {
+                "from": "models",
+                "localField": "ModelId",
+                "foreignField" : "ModelId",
+                "as" : "model"
+            }
+            },
+        {"$unwind" : {"path" : "$model", "preserveNullAndEmptyArrays" : True}},
+        # Join with manufacturers to get ManufacturerName
+        {
+            "$lookup": {
+                "from": "manufacturers",
+                "localField": "ManufacturerId",
+                "foreignField" : "ManufacturerId",
+                "as" : "manufacturer"
+            }
+        },
+        {"$unwind" : {"path" : "$manufacturer", "preserveNullAndEmptyArrays" : True}},
+        # Project the fields
+        {
+            "$project": {
+                "_id": 0,
+                "RoomName" : {"$ifNull" : ["$room.RoomName", "N/A"]},
+                "Status": {"$ifNull" : ["$Status", "N/A"]},
+                "Power": {"$ifNull" : ["$LiveStatus.Power", "N/A"]},
+                "ControllerHost": {
+                    "$ifNull" : [
+                        "$controller.NetworkSettings.HostName",
+                        "$controller.NetworkSettings.GatewayIPAddress",
+                        
+                    ]
+                },
+                "Type": {"$ifNull" : ["$DeviceType", "N/A"]},
+                "Manufacturer": {"$ifNull" : ["$manufacturer.ManufacturerName", "N/A"]},
+                "Model": {"$ifNull" : ["$model.ModelName", "N/A"]},
+                "DeviceName": {"$ifNull" : ["$DeviceName", "N/A"]},
+                "Port": {
+                    "$concat": [
+                        {"$ifNull" : ["$ControllerPortType", "N/A"]},
+                        ": ",
+                        {"$ifNull" : [
+                            {'$toString': '$ControllerPortNumber'},
+                            "N/A"
+                        ]}
+                    ]
+                },
+                "last_updated": {"$ifNull" : ["$last_updated", "null"]}
+            }
+        }
     ]
-            
-# Initialize scheduler
-scheduler = BackgroundScheduler()
-scheduler.add_job(update_devices, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
-scheduler.add_job(update_controllers, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
-scheduler.add_job(update_rooms, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
-scheduler.add_job(update_locations, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
-scheduler.add_job(update_treeview, 'cron', hour=1, minute=0, timezone='America/Chicago')  # Runs daily at 1:00 AM CDT
+    return list(devices_collection.aggregate(pipeline))
 
-scheduler.start()
+# Get Room IDs by Location
+def get_room_ids_by_location(location_id):
+    location_ids = set([location_id])
+    if location_id == 1:
+        pipeline = [
+            {"$match": {}},  # Match all locations
+            {"$project": {"_id": 0, "LocationId": 1}},
+        ]
+    else:
+        pipeline = [
+            {"$match" : {"ParentLocationId" : location_id}},
+            {"$project" : {"_id": 0, "LocationId" : 1}},
+        ]
+    child_locations = list(locations_collection.aggregate(pipeline))
+    location_ids.update(loc["LocationId"] for loc in child_locations)
+    
+    pipeline = [
+        {"$match" : {"LocationId" : {"$in": list(location_ids)}}},
+        {"$project" : {"_id": 0, "RoomId" : 1}},
+    ]
+    
+    rooms_data = list(rooms_collection.aggregate(pipeline))
+    return [room["RoomId"] for room in rooms_data]
 
-# Shut down scheduler when the application exits
-atexit.register(lambda: scheduler.shutdown())
+# Get Devices by Location
+def get_devices_by_location(location_id):
+    room_ids = get_room_ids_by_location(location_id)
+    if not room_ids:
+        return []
+
+    pipeline = [
+        # Match devices with the collected RoomIds
+        {"$match": {"RoomId": {"$in": room_ids}}},
+        # Join with rooms to get RoomName
+        {
+            "$lookup": {
+                "from": "rooms",
+                "localField": "RoomId",
+                "foreignField": "RoomId",
+                "as": "room"
+            }
+        },
+        {"$unwind": {"path": "$room", "preserveNullAndEmptyArrays": True}},
+        # Join with controllers to get NetworkSettings
+        {
+            "$lookup": {
+                "from": "controllers",
+                "localField": "ControllerId",
+                "foreignField": "ControllerId",
+                "as": "controller"
+            }
+        },
+        {"$unwind": {"path": "$controller", "preserveNullAndEmptyArrays": True}},
+        # Join with models to get ModelName
+        {
+            "$lookup": {
+                "from": "models",
+                "localField": "ModelId",
+                "foreignField": "ModelId",
+                "as": "model"
+            }
+        },
+        {"$unwind": {"path": "$model", "preserveNullAndEmptyArrays": True}},
+        # Join with manufacturers to get ManufacturerName
+        {
+            "$lookup": {
+                "from": "manufacturers",
+                "localField": "model.ManufacturerId",
+                "foreignField": "ManufacturerId",
+                "as": "manufacturer"
+            }
+        },
+        {"$unwind": {"path": "$manufacturer", "preserveNullAndEmptyArrays": True}},
+        # Project the required fields
+        {
+            "$project": {
+                "_id": 0,
+                "RoomName": {"$ifNull": ["$room.RoomName", "N/A"]},
+                "Status": {"$ifNull": ["$Status", "N/A"]},
+                "Power": {"$ifNull": ["$LiveStatus.Power", "N/A"]},
+                "ControllerHost": {
+                    "$ifNull": [
+                        "$controller.NetworkSettings.HostName",
+                        "$controller.NetworkSettings.GatewayIPAddress",
+                        "N/A"
+                    ]
+                },
+                "Type": {"$ifNull": ["$DeviceType", "N/A"]},
+                "Manufacturer": {"$ifNull": ["$manufacturer.ManufacturerName", "N/A"]},
+                "Model": {"$ifNull": ["$model.ModelName", "N/A"]},
+                "DeviceName": {"$ifNull": ["$DeviceName", "N/A"]},
+                "Port": {
+                    "$concat": [
+                        {"$ifNull": ["$ControllerPortType", "N/A"]},
+                        " ",
+                        {"$ifNull": [{"$toString": "$ControllerPortNumber"}, "N/A"]}
+                    ]
+                },
+                "last_updated": {"$ifNull": ["$last_updated", None]}
+            }
+        }
+    ]
+    return list(devices_collection.aggregate(pipeline))
+
+# New API views
+class DeviceByRoomView(APIView):
+    def get(self, request, room_id):
+        try:
+            devices = get_devices_by_room(room_id)
+            total = len(devices)
+            last_updated = devices[0]["last_updated"] if devices else None
+            return JsonResponse({
+                'devices': devices,
+                'total': total,
+                'last_updated': last_updated
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching devices by room {room_id}: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DeviceByLocationView(APIView):
+    def get(self, request, location_id):
+        try:
+            devices = get_devices_by_location(location_id)
+            total = len(devices)
+            last_updated = devices[0]["last_updated"] if devices else None
+            return JsonResponse({
+                'devices': devices,
+                'total': total,
+                'last_updated': last_updated
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error fetching devices by location {location_id}: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
