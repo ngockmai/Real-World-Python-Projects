@@ -1,10 +1,18 @@
 from django.urls import path
-from .views import DeviceListView, DeviceDetailView, ControllerListView, ControllerDetailView, RoomListView, RoomDetailView, LocationListView, LocationDetailView, ModelListView, ManufacturerListView, ModelDetailView, ManufacturerDetailView, TreeView
+from .views import (DeviceListView, DeviceDetailView, ControllerListView, ControllerDetailView, 
+                    RoomListView, RoomDetailView, LocationListView, LocationDetailView, ModelListView, 
+                    ManufacturerListView, ModelDetailView, ManufacturerDetailView, TreeView,
+                    DeviceByRoomView, DeviceByLocationView)
 
 api_urlpatterns = [
     # Devices
     path('devices/', DeviceListView.as_view(), name='device_list'),
     path('device/<int:device_id>/', DeviceDetailView.as_view(), name='device_detail'),
+    path('devices/room/<int:room_id>/', DeviceByRoomView.as_view(), name='device_by_room'),
+    path('devices/location/<int:location_id>/', DeviceByLocationView.as_view(), name='device_by_location'),
+    
+    
+    ## Controllers of Devices
     path('controllers/', ControllerListView.as_view(), name='controller_list'),
     path('controller/<int:controller_id>/', ControllerDetailView.as_view(), name='controller_detail'),
     
