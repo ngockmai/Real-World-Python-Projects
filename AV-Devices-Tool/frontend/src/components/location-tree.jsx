@@ -2,9 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from
 import axios from 'axios'
 import { Tree } from 'react-arborist'
 import { Button } from "@/components/ui/button"
-import {Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw, ListTree, AlertTriangle, Info } from 'lucide-react'
 
 
@@ -29,16 +26,18 @@ const createArboristNode = (item, type, idKey, nameKey, childrenKey, childrenPro
         return null
     }
 
-    const nodeId = `${type}-${item[idKey]}`
+    const arboristNodeId = `${type}-${item[idKey]}`
+    const nodeName = `${item[nameKey] || 'Unknown Name'}`
     const node = {
-        id: nodeId,
-        name: `${item[nameKey] || 'Unknown Name'}`,
+        id: arboristNodeId,
+        name: nodeName,
         data: {
-            type,
-            id: item[idKey],
-            data: { ...item, originalType: type },
-            children: null,
-        }
+            type: type,
+            originalId: item[idKey],
+            name: nodeName,
+            apiData: { ...item, originalType: type },
+        },
+        children: null
     }
 
     if (childrenKey && item[childrenKey] && Array.isArray(item[childrenKey])){
@@ -85,7 +84,62 @@ const transformTreeData = (apiResponse) => {
     return rootNode ? [rootNode] : []
 }
 
-const LocationTree = () => {
+// Custom Node Component with triangle icon and click handling
+const CustomNode = ({ node, style, dragHandle, onNodeSelect, isSelected }) => {
+    // node.children is the array of child node objects for react-arborist
+    // node.data is what we defined in createArboristNode's 'data' property
+    const hasChildren = node.children && node.children.length > 0;
+
+    const handleToggle = (e) => {
+        e.stopPropagation();
+        if (hasChildren) {
+            node.toggle();
+        }
+    };
+
+    const handleClick = () => {
+        // Pass the full react-arborist node object.
+        // This node object contains node.id (arborist id), node.name (top-level name),
+        // and node.data (our custom data including type, originalId, name, apiData)
+        onNodeSelect(node);
+    };
+
+    return (
+        <div
+            className={`flex items-center py-1 px-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 rounded ${isSelected ? 'bg-blue-100 dark:bg-blue-800 ring-1 ring-blue-500' : ''}`}
+            style={style}
+            ref={dragHandle}
+            onClick={handleClick}
+            title={`Type: ${node.data.type}, ID: ${node.data.originalId}`} // Tooltip for quick info
+        >
+            <span
+                className={`inline-block w-4 h-4 mr-2 cursor-pointer transition-transform duration-200 ${hasChildren ? '' : 'opacity-0'}`} // Hide arrow if no children
+                onClick={handleToggle}
+            >
+                {hasChildren && ( // Only render SVG if there are children
+                    <svg
+                        className={`w-4 h-4 transform ${node.isOpen ? 'rotate-90' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+                )}
+            </span>
+            {/* Display the name from node.data.name */}
+            <span>{node.data.name}</span>
+        </div>
+    );
+};
+
+const LocationTree = ({selectedNode, onNodeSelect}) => {
     const [treeData, setTreeData] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -163,7 +217,7 @@ const LocationTree = () => {
     }
 
     return (
-        <div className="p-4 bg-white shadow-md rounded-lg h-full flex flex-col">
+        <div className="p-4 bg-white shadow-md rounded-lg flex flex-col">
             <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
                 <h1 className="text-2xl font-semibold text-gray-800">Location Tree</h1>
             </div>
@@ -186,10 +240,17 @@ const LocationTree = () => {
                 }}>
                     <Tree 
                     data={treeData}
-                    className="h-ful w-full"
                     initialOpenState={initialOpenState}
                     openByDefault = {false}
-                    />
+                    >
+                        {(props) => (
+                        <CustomNode
+                        {...props}
+                        onNodeSelect={onNodeSelect}
+                        isSelected={selectedNode?.id === props.node.id}
+                        />
+                    )}
+                    </Tree>
                 </div>
                     
             ) : (
