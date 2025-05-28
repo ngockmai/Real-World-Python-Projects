@@ -1,176 +1,147 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender
+} from '@tanstack/react-table';
 
-const DeviceTable = () => {
-  const [devices, setDevices] = useState([]);
-  const [loading, setLoading] = useState(true);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Accept only locationType and locationId
+export default function DeviceTable({ locationType, locationId }) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [editingDevice, setEditingDevice] = useState(null);
-  const [formData, setFormData] = useState({ notes: '', custom_status: '', owner: '' });
-  const [roomId, setRoomId] = useState('');
-  const [locationId, setLocationId] = useState('');
-
-  const fetchDevices = async (url) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.get(url);
-      if (!response.data.devices) {
-        throw new Error('Unexpected response format: "devices" key missing');
-      }
-      setDevices(response.data.devices);
-      console.log('Fetched devices:', response.data.devices);
-    } catch (err) {
-      setError('Failed to fetch devices: ' + (err.response?.data?.error || err.message));
-      console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchDevices('http://localhost:8000/api/devices/');
-  }, []);
-
-  const handleFilterByRoom = () => {
-    if (roomId) {
-      fetchDevices(`http://localhost:8000/api/devices/room/${roomId}/`);
+    if (!locationType || locationId === undefined || locationId === null) {
+      setData([]);
+      setLoading(false);
+      setError(null);
+      return;
     }
-  };
 
-  const handleFilterByLocation = () => {
-    if (locationId) {
-      fetchDevices(`http://localhost:8000/api/devices/location/${locationId}/`);
-    }
-  };
+    const fetchDevices = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const endpointType = locationType === 'room' ? 'room' : 'location';
+        const url = `${API_BASE_URL}/devices/${endpointType}/${locationId}`;
+        
+        console.log("DeviceTable: Fetching devices from:", url);
 
-  const handleReset = () => {
-    setRoomId('');
-    setLocationId('');
-    fetchDevices('http://localhost:8000/api/devices/');
-  };
+        const response = await axios.get(url);
+        setData(response.data.devices || []);
+      } catch (err) {
+        console.error("DeviceTable: Failed to fetch devices:", err);
+        setError(err.response?.data?.error || err.message || 'Failed to fetch devices');
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleEdit = (device) => {
-    setEditingDevice(device.device_id);
-    setFormData({
-      notes: device.notes || '',
-      custom_status: device.custom_status || '',
-      owner: device.owner || ''
-    });
-  };
+    fetchDevices();
+  }, [locationType, locationId]); // Dependencies remain the same
 
-  const handleSave = async (device_id) => {
-    try {
-      const response = await axios.post(`http://localhost:8000/api/devices/${device_id}/info/`, formData);
-      const updatedDevices = devices.map(device =>
-        device.device_id === device_id
-          ? { ...device, ...formData }
-          : device
-      );
-      setDevices(updatedDevices);
-      setEditingDevice(null);
-      console.log(`Saved DeviceInfo for ${device_id}:`, response.data);
-    } catch (err) {
-      setError('Failed to save device info: ' + (err.response?.data?.error || err.message));
-      console.error('Save error:', err);
-    }
-  };
+  const columns = useMemo(() => [
+    { header: 'Room', accessorKey: 'RoomName' },
+    { header: 'Status', accessorKey: 'Status' },
+    { header: 'Power', accessorKey: 'Power' },
+    { header: 'Controller Host', accessorKey: 'ControllerHost' },
+    { header: 'Type', accessorKey: 'Type' }, // Device Type
+    { header: 'Manufacturer', accessorKey: 'Manufacturer' },
+    { header: 'Model', accessorKey: 'Model' },
+    { header: 'Device Name', accessorKey: 'DeviceName' },
+    { header: 'Port', accessorKey: 'Port' },
+  ], []);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const tableInstance = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
-  const getStatusIcon = (status) => {
-    if (!status) return <span className="w-3 h-3 bg-gray-400 rounded-full inline-block"></span>;
-    return status.toLowerCase().includes('online') ? (
-      <span className="w-3 h-3 bg-green-500 rounded-full inline-block"></span>
-    ) : (
-      <span className="w-3 h-3 bg-red-500 rounded-full inline-block"></span>
+  // Initial state before any selection from the tree
+  if (!locationType && (locationId === undefined || locationId === null)) {
+    return (
+      <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow h-full flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Select a location or room to view devices.</p>
+      </div>
     );
-  };
+  }
 
-  if (loading) return <div className="text-center text-gray-600">Loading...</div>;
-  if (error) return <div className="text-center text-red-600">Error: {error}</div>;
-  if (!devices.length) return <div className="text-center text-gray-600">No devices found</div>;
+  if (loading) {
+    return (
+      <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow h-full flex items-center justify-center">
+        {/* Updated loading message */}
+        <p className="text-gray-600 dark:text-gray-400">Loading devices for {locationType} ID: {locationId}...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-100 text-red-700 rounded-lg shadow dark:bg-red-900/30 dark:text-red-300">
+        {/* Updated error message */}
+        <p className="font-semibold">Error loading devices for {locationType} ID: {locationId}:</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4">
-      <div className="flex flex-col sm:flex-row justify-between mb-4 gap-4">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Room ID"
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-            className="border border-gve-gray rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gve-blue"
-          />
-          <button
-            onClick={handleFilterByRoom}
-            className="bg-gve-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Filter by Room
-          </button>
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow h-full flex flex-col">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+        {/* Updated title */}
+        Devices for {locationType.charAt(0).toUpperCase() + locationType.slice(1)} ID: {locationId}
+      </h2>
+      {data.length > 0 ? (
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 bg-gray-100 dark:bg-gray-700 z-10">
+              {tableInstance.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className="border p-2 text-left font-semibold text-gray-700 dark:text-gray-200 dark:border-gray-600"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {tableInstance.getRowModel().rows.map(row => (
+                <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id} className="border p-2 text-gray-700 dark:text-gray-300 dark:border-gray-600">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      ) ?? <span className="text-gray-400 dark:text-gray-500">N/A</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Location ID"
-            value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
-            className="border border-gve-gray rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gve-blue"
-          />
-          <button
-            onClick={handleFilterByLocation}
-            className="bg-gve-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Filter by Location
-          </button>
-        </div>
-        <button
-          onClick={handleReset}
-          className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-        >
-          Reset
-        </button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse border border-gve-gray">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Controller IP/Host</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Type</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Manufacturer</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Model</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Device Name</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Port</th>
-              <th className="border border-gve-gray px-4 py-2 text-left text-sm font-semibold text-gray-700">Bi-Directional</th>
-            </tr>
-          </thead>
-          <tbody>
-            {devices.map(device => (
-              <tr key={device.device_id} className="hover:bg-gray-50">
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{getStatusIcon(device.status)}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.room_id || 'N/A'}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.type}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.manufacturer}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.model}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.device_name}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">{device.port}</td>
-                <td className="border border-gve-gray px-4 py-2 text-sm text-gray-600">
-                  <span className="w-4 h-4 bg-gray-300 rounded-full inline-block"></span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="text-right text-sm text-gray-600 mt-2">
-        Page 1 of 15 | Displaying Devices 1 - 100 of 1481
-      </div>
+      ) : (
+        <p className="text-gray-600 dark:text-gray-400 mt-4">
+          {/* Updated no data message */}
+          No devices found for {locationType} ID: {locationId}.
+        </p>
+      )}
     </div>
   );
-};
-
-export default DeviceTable;
+}
